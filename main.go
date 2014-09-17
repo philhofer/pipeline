@@ -1,0 +1,95 @@
+package main
+
+import (
+	"bytes"
+	"flag"
+	"fmt"
+	"os"
+	"strings"
+)
+
+// used for two-type methods
+type Transfrm struct {
+	Src string
+	Dst string
+}
+
+var (
+	methodlist string
+	tnames     string
+	outf       string
+)
+
+func init() {
+	flag.StringVar(&methodlist, "methods", "", "methods to generate")
+	flag.StringVar(&tnames, "type", "", "the type to use")
+	flag.StringVar(&outf, "o", "_gen.go", "out file")
+}
+
+func main() {
+	flag.Parse()
+
+	if methodlist == "" {
+		fmt.Println("missing method list (-methods=\"Merge,Fanout,Apply\"")
+		os.Exit(1)
+	}
+	if tnames == "" {
+		fmt.Println("missing type name(s) (-type=\"int,string\"")
+	}
+
+	var buf bytes.Buffer
+	ms := strings.Split(methodlist, ",")
+	ts := strings.Split(tnames, ",")
+	switch len(ts) {
+	case 1, 2:
+	default:
+		fmt.Println("need either 1 or 2 type names")
+		os.Exit(1)
+	}
+
+	pkg := os.Getenv("GOPACKAGE")
+	if pkg == "" {
+		pkg = "main"
+	}
+
+	// set package header from go:generate tool
+	buf.WriteString(fmt.Sprintf("package %s\n\n", pkg))
+	if outf == "_gen.go" {
+		if os.Getenv("GOFILE") != "" {
+			outf = os.Getenv("GOFILE") + "_gen.go"
+		}
+	}
+
+	for _, m := range ms {
+		var err error
+		switch m {
+		case "Merge", "Fanout", "Apply", "Papply", "Map", "Pmap", "Filter":
+			err = WriteMethod(&buf, m, ts[0])
+		case "Transform", "Ptransform":
+			if len(ts) != 2 {
+				fmt.Println("need 2 type names for Transform methods")
+				os.Exit(1)
+			}
+			err = WriteMethod(&buf, m, &Transfrm{Src: ts[0], Dst: ts[1]})
+		default:
+			fmt.Printf("Unrecognized method name %q", m)
+			os.Exit(1)
+		}
+		if err != nil {
+			fmt.Printf("Error: %s\n", err)
+			os.Exit(1)
+		}
+	}
+
+	file, err := os.Create(outf)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		os.Exit(1)
+	}
+	defer file.Close()
+	_, err = buf.WriteTo(file)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		os.Exit(1)
+	}
+}
