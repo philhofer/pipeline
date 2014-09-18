@@ -12,10 +12,10 @@ This tool is targeted at the `go generate` tool. In your source code, you will
 need to include one or more directives like the following:
 
 ```go
-//go:generate pipeline -methods=Merge,Transform,Apply type=*int
+//go:generate pipeline -methods=Merge,Transform,Apply type=*int,string
 ```
 
-(The above would generate the `Merge`, `Transform`, and `Apply` methods for `*int`s.) The default output 
+(The above would generate the `Merge` and `Apply` methods for `*int`s and `Transform` for `*int`-to-`string`.) The default output 
 file is the name of the file the directive was called from with `_gen.go` added as a suffix. You can override 
 the default output with the `-o` flag.
 
@@ -30,5 +30,6 @@ the default output with the `-o` flag.
  - Filter
  - Transform (sequential transformation)
  - Ptransform (parallel transformation)
+ 
 
- Prototypes and descriptions of the methods are available at [godoc](http://godoc.org/github.com/philhofer/pipeline).
+Prototypes and descriptions of the methods are available at [godoc](http://godoc.org/github.com/philhofer/pipeline).
