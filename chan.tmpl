@@ -130,7 +130,7 @@ func Pmap{{.Esc}}(v <-chan {{.}}, n int, fs ...func({{.}}) {{.}}) <-chan {{.}} {
 
 {{define "TransformT"}}// Transform transforms elements from 'v' from {{.Src}} to {{.Dst}} using
 // 'f' and sends them on the output channel.
-func Transform{{.Esc}}(v <-chan {{.Src}}, f func({{.Src}}) {{.Dst}}) <-chan J {
+func Transform{{.Esc}}(v <-chan {{.Src}}, f func({{.Src}}) {{.Dst}}) <-chan {{.Dst}} {
 	out := make(chan {{.Dst}})
 	go func() {
 		for e := range v {

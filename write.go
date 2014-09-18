@@ -13,7 +13,7 @@ const (
 	ApplyTemplate      = "{{template \"ApplyT\" .}}\n\n"
 	PapplyTemplate     = "{{template \"PapplyT\" .}}\n\n"
 	MapTemplate        = "{{template \"MapT\" .}}\n\n"
-	PmapTemplate       = "{{template \"Pmap\" .}}\n\n"
+	PmapTemplate       = "{{template \"PmapT\" .}}\n\n"
 	FilterTemplate     = "{{template \"FilterT\" .}}\n\n"
 	TransformTemplate  = "{{template \"TransformT\" .}}\n\n"
 	PtransformTemplate = "{{template \"PtransformT\" .}}\n\n"
