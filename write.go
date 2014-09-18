@@ -7,15 +7,15 @@ import (
 )
 
 const (
-	MergeTemplate      = "{{template \"MergeT\" .}}\n"
-	FanoutTemplate     = "{{template \"FanoutT\" .}}\n"
-	ApplyTemplate      = "{{template \"ApplyT\"}}\n"
-	PapplyTemplate     = "{{template \"PapplyT\"}}\n"
-	MapTemplate        = "{{template \"MapT\"}}\n"
-	PmapTemplate       = "{{template \"Pmap\"}}"
-	FilterTemplate     = "{{template \"FilterT\"}}\n"
-	TransformTemplate  = "{{template \"TransformT\"}}\n"
-	PtransformTemplate = "{{template \"PtransformT\" .}}\n"
+	MergeTemplate      = "{{template \"MergeT\" .}}\n\n"
+	FanoutTemplate     = "{{template \"FanoutT\" .}}\n\n"
+	ApplyTemplate      = "{{template \"ApplyT\" .}}\n\n"
+	PapplyTemplate     = "{{template \"PapplyT\" .}}\n\n"
+	MapTemplate        = "{{template \"MapT\" .}}\n\n"
+	PmapTemplate       = "{{template \"Pmap\" .}}\n\n"
+	FilterTemplate     = "{{template \"FilterT\" .}}\n\n"
+	TransformTemplate  = "{{template \"TransformT\" .}}\n\n"
+	PtransformTemplate = "{{template \"PtransformT\" .}}\n\n"
 )
 
 var (
@@ -43,11 +43,11 @@ func WriteMethod(w io.Writer, name string, v interface{}) error {
 	if !ok {
 		return fmt.Errorf("no method %q", name)
 	}
-
 	local, err := all.Clone()
 	if err != nil {
 		return err
 	}
+
 	local, err = local.Parse(tl)
 	if err != nil {
 		return err
