@@ -60,7 +60,7 @@ func main() {
 
 	pkg := os.Getenv("GOPACKAGE")
 	if pkg == "" {
-		pkg = "main"
+		pkg = "test"
 	}
 
 	// write package name and required imports (which

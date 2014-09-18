@@ -1,10 +1,16 @@
-{{define "MergeT"}}// Merge merges multiple channels into one
-func Merge{{.Esc}}(v ...<-chan {{.}}) <-chan {{.}} {
+package test
+
+import (
+	"sync"
+)
+
+// Merge merges multiple channels into one
+func Mergeint(v ...<-chan int) <-chan int {
 	wg := new(sync.WaitGroup)
-	out := make(chan {{.}})
+	out := make(chan int)
 	for _, c := range v {
 		wg.Add(1)
-		go func(c <-chan {{.}}) {
+		go func(c <-chan int) {
 			for e := range c {
 				out <- e
 			}
@@ -16,14 +22,14 @@ func Merge{{.Esc}}(v ...<-chan {{.}}) <-chan {{.}} {
 		close(out)
 	}()
 	return out
-}{{end}}
+}
 
-{{define "FanoutT"}}// Fanout splits one channel into 'n' channels
-func Fanout{{.Esc}}(v <-chan {{.}}, n int) []<-chan {{.}} {
-	out := make([]<-chan {{.}}, 0, n)
+// Fanout splits one channel into 'n' channels
+func Fanoutint(v <-chan int, n int) []<-chan int {
+	out := make([]<-chan int, 0, n)
 	for i := 0; i < n; i++ {
-		local := make(chan {{.}})
-		go func(c <-chan {{.}}, i int, out chan {{.}}) {
+		local := make(chan int)
+		go func(c <-chan int, i int, out chan int) {
 			for e := range c {
 				out <- e
 			}
@@ -32,12 +38,25 @@ func Fanout{{.Esc}}(v <-chan {{.}}, n int) []<-chan {{.}} {
 		out = append(out, local)
 	}
 	return out
-}{{end}}
+}
 
-{{define "ApplyT"}}// Apply applies 'fs' successively to each element of a channel
+// Transform transforms elements from 'v' from int to *string using
+// 'f' and sends them on the output channel.
+func Transformintptrstring(v <-chan int, f func(int) *string) <-chan *string {
+	out := make(chan *string)
+	go func() {
+		for e := range v {
+			out <- f(e)
+		}
+		close(out)
+	}()
+	return out
+}
+
+// Apply applies 'fs' successively to each element of a channel
 // and sends the the object to the output channel.
-func Apply{{.Esc}}(v <-chan {{.}}, fs ...func({{.}})) <-chan {{.}} {
-	out := make(chan {{.}})
+func Applyint(v <-chan int, fs ...func(int)) <-chan int {
+	out := make(chan int)
 	go func() {
 		for e := range v {
 			for _, f := range fs {
@@ -48,13 +67,13 @@ func Apply{{.Esc}}(v <-chan {{.}}, fs ...func({{.}})) <-chan {{.}} {
 		close(out)
 	}()
 	return out
-}{{end}}
+}
 
-{{define "PapplyT"}}// Papply applies 'fs' successively to each element received on 'v' and
+// Papply applies 'fs' successively to each element received on 'v' and
 // sends the object along to the output channel. 'n' goroutines
 // are used for processing.
-func Papply{{.Esc}}(v <-chan {{.}}, n int, fs ...func({{.}})) <-chan {{.}} {
-	out := make(chan {{.}})
+func Papplyint(v <-chan int, n int, fs ...func(int)) <-chan int {
+	out := make(chan int)
 	wg := new(sync.WaitGroup)
 	wg.Add(n)
 	for i := 0; i < n; i++ {
@@ -72,12 +91,12 @@ func Papply{{.Esc}}(v <-chan {{.}}, n int, fs ...func({{.}})) <-chan {{.}} {
 		close(out)
 	}()
 	return out
-}{{end}}
+}
 
-{{define "MapT"}}// Map applies 'fs' successively to each element read from
+// Map applies 'fs' successively to each element read from
 // 'v' and sends them to the output channel.
-func Map{{.Esc}}(v <-chan {{.}}, fs ...func({{.}}) {{.}}) <-chan {{.}} {
-	out := make(chan {{.}})
+func Mapint(v <-chan int, fs ...func(int) int) <-chan int {
+	out := make(chan int)
 	go func() {
 		for e := range v {
 			for _, f := range fs {
@@ -88,13 +107,13 @@ func Map{{.Esc}}(v <-chan {{.}}, fs ...func({{.}}) {{.}}) <-chan {{.}} {
 		close(out)
 	}()
 	return out
-}{{end}}
+}
 
-{{define "PmapT"}}// Pmap applies 'fs' successively to elements read from 'v' and
+// Pmap applies 'fs' successively to elements read from 'v' and
 // sends the result to the output channel. 'n' goroutines are used
 // for processing.
-func Pmap{{.Esc}}(v <-chan {{.}}, n int, fs ...func({{.}}) {{.}}) <-chan {{.}} {
-	out := make(chan {{.}})
+func Pmapint(v <-chan int, n int, fs ...func(int) int) <-chan int {
+	out := make(chan int)
 	wg := new(sync.WaitGroup)
 	wg.Add(n)
 	for i := 0; i < n; i++ {
@@ -113,12 +132,12 @@ func Pmap{{.Esc}}(v <-chan {{.}}, n int, fs ...func({{.}}) {{.}}) <-chan {{.}} {
 		close(out)
 	}()
 	return out
-}{{end}}
+}
 
-{{define "FilterT"}}// Filter filters the input channel using 'f'. Only elements
-// for which f({{.}}) evaluates to 'true' will appear on the output channel.
-func Filter{{.Esc}}(v <-chan {{.}}, f func({{.}}) bool) <-chan {{.}} {
-	out := make(chan {{.}})
+// Filter filters the input channel using 'f'. Only elements
+// for which f(int) evaluates to 'true' will appear on the output channel.
+func Filterint(v <-chan int, f func(int) bool) <-chan int {
+	out := make(chan int)
 	go func() {
 		for e := range v {
 			if f(e) {
@@ -128,24 +147,11 @@ func Filter{{.Esc}}(v <-chan {{.}}, f func({{.}}) bool) <-chan {{.}} {
 		close(out)
 	}()
 	return out
-}{{end}}
+}
 
-{{define "TransformT"}}// Transform transforms elements from 'v' from {{.Src}} to {{.Dst}} using
-// 'f' and sends them on the output channel.
-func Transform{{.Esc}}(v <-chan {{.Src}}, f func({{.Src}}) {{.Dst}}) <-chan {{.Dst}} {
-	out := make(chan {{.Dst}})
-	go func() {
-		for e := range v {
-			out <- f(e)
-		}
-		close(out)
-	}()
-	return out
-}{{end}}
-
-{{define "PtransformT"}}// Ptransform performs Transform{{.Esc}}() in parallel using 'n' goroutines.
-func Ptransform{{.Esc}}(v <-chan {{.Src}}, f func({{.Src}}) {{.Dst}}, n int) <-chan {{.Dst}} {
-	out := make(chan {{.Dst}})
+// Ptransform performs Transformintptrstring() in parallel using 'n' goroutines.
+func Ptransformintptrstring(v <-chan int, f func(int) *string, n int) <-chan *string {
+	out := make(chan *string)
 	wg := new(sync.WaitGroup)
 	wg.Add(n)
 	for i := 0; i < n; i++ {
@@ -161,47 +167,45 @@ func Ptransform{{.Esc}}(v <-chan {{.Src}}, f func({{.Src}}) {{.Dst}}, n int) <-c
 		close(out)
 	}()
 	return out
-}{{end}}
+}
 
-{{define "SendAllT"}}// SendAll sends a slice sequentially over a channel
-func SendAll{{.Esc}}(in []{{.}}) <-chan {{.}} {
-	out := make(chan {{.}})
+// SendAll sends a slice sequentially over a channel
+func SendAllint(in []int) <-chan int {
+	out := make(chan int)
 	go func() {
 		for i := range in {
 			out <- in[i]
 		}
 	}()
 	return out
-}{{end}}
-
-{{define "RecvAllT"}}// RecvAll collects every element sent on the
+}// RecvAll collects every element sent on the
 // input channel into a slice. It blocks until the input channel is closed.
-func RecvAll{{.Esc}}(in <-chan {{.}}) []{{.}} {
-	out := make([]{{.}}, 0, 50)
+func RecvAllint(in <-chan int) []int {
+	out := make([]int, 0, 50)
 	for e := range in {
 		out = append(out, e)
 	}
 	return out
-}{{end}}
+}
 
-{{define "RecvNT"}}// RecvN pulls 'n' elements out of 'in' and returns a slice
+// RecvN pulls 'n' elements out of 'in' and returns a slice
 // of those elements. The length of the output slice may be less than 'n' if
 // the channel was closed before 'n' elements were collected.
-func RecvN{{.Esc}}(in <-chan {{.}}, n int) []{{.}} {
-	ot := make([]{{.}}, 0, n)
+func RecvNint(in <-chan int, n int) []int {
+	ot := make([]int, 0, n)
 	for i := 0; i < n; i++ {
 		ot = append(ot, <-in)
 	}
 	return ot
-}{{end}}
+}
 
-{{define "BufferT"}}// Buffer reads elements from 'in' and attempts to send them
+// Buffer reads elements from 'in' and attempts to send them
 // to 'out'. If the send would block, the messages are buffered
 // internally. Buffer closes 'out' after 't' is closed. Buffer() blocks
 // until 'in' is closed, so in most cases it should be run asynchronously. Buffer uses
 // a LIFO queue, so it should only be used in cases where ordering doesn't matter.
-func Buffer{{.Esc}}(in <-chan {{.}}, out chan<- {{.}}) {
-	var buf []{{.}}
+func Bufferint(in <-chan int, out chan<- int) {
+	var buf []int
 	for {
 		if len(buf) > 0 {
 			select {
@@ -237,4 +241,5 @@ func Buffer{{.Esc}}(in <-chan {{.}}, out chan<- {{.}}) {
 		}
 	}
 	close(out)
-}{{end}}
+}
+
