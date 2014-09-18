@@ -63,8 +63,11 @@ func main() {
 		pkg = "main"
 	}
 
-	// set package header from go:generate tool
+	// write package name and required imports (which
+	// should just be "sync")
 	buf.WriteString(fmt.Sprintf("package %s\n\n", pkg))
+	buf.WriteString("import (\n\t\"sync\"\n)\n\n")
+
 	if outf == "_gen.go" {
 		if os.Getenv("GOFILE") != "" {
 			outf = os.Getenv("GOFILE") + "_gen.go"
