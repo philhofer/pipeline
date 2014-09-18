@@ -2,6 +2,7 @@ package prototype
 
 import (
 	"sync"
+	"time"
 )
 
 type T struct{}
@@ -170,4 +171,80 @@ func PtransformTJ(v <-chan T, f func(T) J, n int) <-chan J {
 		close(out)
 	}()
 	return out
+}
+
+// SendAll sends a slice sequentially over a channel
+func SendAllT(in []T) <-chan T {
+	out := make(chan T)
+	go func() {
+		for i := range in {
+			out <- in[i]
+		}
+	}()
+	return out
+}
+
+// RecvAll collects every element sent on the
+// input channel into a slice.
+func RecvAllT(in <-chan T) []T {
+	out := make([]T, 0, 50)
+	for e := range in {
+		out = append(out, e)
+	}
+	return out
+}
+
+// RecvN pulls 'n' elements out of 'in' and returns
+// the slice and the channel.
+func RecvNT(in <-chan T, n int) []T {
+	ot := make([]T, 0, n)
+	for i := 0; i < n; i++ {
+		ot = append(ot, <-in)
+	}
+	return ot
+}
+
+// Buffer reads elements from 'in' and attempts to send them
+// to 'out'. If the send would block, the messages are buffered
+// internally. Buffer closes 'out' after 't' is closed. Buffer() blocks
+// until 'in' is closed, so in most cases it should be run asynchronously. Buffer
+// uses a LIFO queue internally, so it should only be used when ordering
+// doesn't matter.
+func BufferT(in <-chan T, out chan<- T) {
+	var buf []T
+	for {
+		if len(buf) > 0 {
+			select {
+			case v, ok := <-in:
+				if !ok {
+					break
+				}
+				select {
+				case out <- v:
+					continue
+				default:
+					buf = append(buf, v)
+					continue
+				}
+			case out <- buf[len(buf)-1]:
+				buf = buf[:len(buf)-1]
+				continue
+			}
+		} else {
+			select {
+			case v, ok := in:
+				if !ok {
+					break
+				}
+				select {
+				case out <- v:
+					continue
+				default:
+					buf = append(buf, v)
+					continue
+				}
+			}
+		}
+	}
+	close(out)
 }

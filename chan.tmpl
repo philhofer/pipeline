@@ -115,7 +115,9 @@ func Pmap{{.Esc}}(v <-chan {{.}}, n int, fs ...func({{.}}) {{.}}) <-chan {{.}} {
 	return out
 }{{end}}
 
-{{define "FilterT"}}func Filter{{.Esc}}(v <-chan {{.}}, f func({{.}}) bool) <-chan {{.}} {
+{{define "FilterT"}}// Filter filters the input channel using 'f'. Only elements
+// for which f({{.}}) evaluates to 'true' will appear on the output channel.
+func Filter{{.Esc}}(v <-chan {{.}}, f func({{.}}) bool) <-chan {{.}} {
 	out := make(chan {{.}})
 	go func() {
 		for e := range v {
@@ -159,4 +161,80 @@ func Ptransform{{.Esc}}(v <-chan {{.Src}}, f func({{.Src}}) {{.Dst}}, n int) <-c
 		close(out)
 	}()
 	return out
+}{{end}}
+
+{{define "SendAllT"}}// SendAll sends a slice sequentially over a channel
+func SendAll{{.Esc}}(in []{{.}}) <-chan {{.}} {
+	out := make(chan {{.}})
+	go func() {
+		for i := range in {
+			out <- in[i]
+		}
+	}()
+	return out
+}{{end}}
+
+{{define "RecvAllT"}}// RecvAll collects every element sent on the
+// input channel into a slice. It blocks until the input channel is closed.
+func RecvAll{{.Esc}}(in <-chan {{.}}) []{{.}} {
+	out := make([]T, 0, 50)
+	for e := range in {
+		out = append(out, e)
+	}
+	return out
+}{{end}}
+
+{{define "RecvNT"}}// RecvN pulls 'n' elements out of 'in' and returns a slice
+// of those elements. The length of the output slice may be less than 'n' if
+// the channel was closed before 'n' elements were collected.
+func RecvN{{.Esc}}(in <-chan T, n int) []{{.}} {
+	ot := make([]{{.}}, 0, n)
+	for i := 0; i < n; i++ {
+		ot = append(ot, <-in)
+	}
+	return ot
+}{{end}}
+
+{{define "BufferT"}}// Buffer reads elements from 'in' and attempts to send them
+// to 'out'. If the send would block, the messages are buffered
+// internally. Buffer closes 'out' after 't' is closed. Buffer() blocks
+// until 'in' is closed, so in most cases it should be run asynchronously. Buffer uses
+// a LIFO queue, so it should only be used in cases where ordering doesn't matter.
+func Buffer{{.Esc}}(in <-chan {{.}}, out chan<- {{.}}) {
+	var buf []{{.}}
+	for {
+		if len(buf) > 0 {
+			select {
+			case v, ok := <-in:
+				if !ok {
+					break
+				}
+				select {
+				case out <- v:
+					continue
+				default:
+					buf = append(buf, v)
+					continue
+				}
+			case out <- buf[len(buf)-1]:
+				buf = buf[:len(buf)-1]
+				continue
+			}
+		} else {
+			select {
+			case v, ok := in:
+				if !ok {
+					break
+				}
+				select {
+				case out <- v:
+					continue
+				default:
+					buf = append(buf, v)
+					continue
+				}
+			}
+		}
+	}
+	close(out)
 }{{end}}

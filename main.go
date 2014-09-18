@@ -77,8 +77,11 @@ func main() {
 	for _, m := range ms {
 		var err error
 		switch m {
-		case "Merge", "Fanout", "Apply", "Papply", "Map", "Pmap", "Filter":
+		// one-type methods
+		case "Merge", "Fanout", "Apply", "Papply", "Map", "Pmap", "Filter", "SendAll", "RecvAll", "RecvN", "Buffer":
 			err = WriteMethod(&buf, m, Basic{s: ts[0]})
+
+		// two-type methods
 		case "Transform", "Ptransform":
 			if len(ts) != 2 {
 				fmt.Println("need 2 type names for Transform methods")
