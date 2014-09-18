@@ -30,6 +30,6 @@ the default output with the `-o` flag.
  - Filter
  - Transform (sequential transformation)
  - Ptransform (parallel transformation)
- 
 
-Prototypes and descriptions of the methods are available at [godoc](http://godoc.org/github.com/philhofer/pipeline).
+
+Prototypes and descriptions of the methods are available at [godoc](http://godoc.org/github.com/philhofer/pipeline/prototype).
