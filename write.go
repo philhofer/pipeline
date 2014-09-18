@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
 	"text/template"
 )
 
@@ -24,7 +25,9 @@ var (
 )
 
 func init() {
-	all = template.Must(template.ParseFiles("chan.tmpl"))
+	gopath := os.Getenv("GOPATH")
+	tloc := gopath + "/src/github.com/philhofer/pipeline/chan.tmpl"
+	all = template.Must(template.ParseFiles(tloc))
 	tmap = map[string]string{
 		"Merge":      MergeTemplate,
 		"Fanout":     FanoutTemplate,
