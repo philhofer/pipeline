@@ -15,6 +15,7 @@ const (
 	MapTemplate        = "{{template \"MapT\" .}}\n\n"
 	PmapTemplate       = "{{template \"PmapT\" .}}\n\n"
 	FilterTemplate     = "{{template \"FilterT\" .}}\n\n"
+	SendAllTemplate    = "{{template \"SendAllT\" .}}"
 	RecvAllTemplate    = "{{template \"RecvAllT\" .}}\n\n"
 	RecvNTemplate      = "{{template \"RecvNT\" .}}\n\n"
 	BufferTemplate     = "{{template \"BufferT\" .}}\n\n"
@@ -41,6 +42,7 @@ func init() {
 		"Filter":     FilterTemplate,
 		"RecvAll":    RecvAllTemplate,
 		"RecvN":      RecvNTemplate,
+		"SendAll":    SendAllTemplate,
 		"Buffer":     BufferTemplate,
 		"Transform":  TransformTemplate,
 		"Ptransform": PtransformTemplate,

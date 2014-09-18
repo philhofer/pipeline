@@ -23,7 +23,7 @@ func Fanout{{.Esc}}(v <-chan {{.}}, n int) []<-chan {{.}} {
 	out := make([]<-chan {{.}}, 0, n)
 	for i := 0; i < n; i++ {
 		local := make(chan {{.}})
-		go func(c <-chan T, i int, out chan {{.}}) {
+		go func(c <-chan {{.}}, i int, out chan {{.}}) {
 			for e := range c {
 				out <- e
 			}
