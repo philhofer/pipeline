@@ -217,6 +217,10 @@ func BufferT(in <-chan T, out chan<- T) {
 			select {
 			case v, ok := <-in:
 				if !ok {
+					// flush everything
+					for i := range buf {
+						out <- buf[i]
+					}
 					break
 				}
 				select {

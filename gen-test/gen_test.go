@@ -20,6 +20,8 @@ func TestMerge(t *testing.T) {
 	two <- 6
 
 	out := Mergeint(one, two)
+	close(one)
+	close(two)
 
 	slc := make([]int, 6)
 	for i := 0; i < 6; i++ {
@@ -43,6 +45,7 @@ func TestFanout(t *testing.T) {
 	in <- 1
 	in <- 2
 	in <- 3
+	close(in)
 
 	out := Fanoutint(in, 2)
 

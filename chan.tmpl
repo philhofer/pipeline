@@ -207,6 +207,10 @@ func Buffer{{.Esc}}(in <-chan {{.}}, out chan<- {{.}}) {
 			select {
 			case v, ok := <-in:
 				if !ok {
+					// flush everything
+					for i := range buf {
+						out <- buf[i]
+					}
 					break
 				}
 				select {
